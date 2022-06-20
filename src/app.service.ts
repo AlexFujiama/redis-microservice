@@ -9,18 +9,32 @@ export class AppService {
 
     constructor() {
         this.client.connect();
+
+        this.deleteAllKeys("*").then(resp => console.log(resp));
     };
 
-    async createCache(key: string, value: any) {
-        return await this.client.set(key, JSON.stringify(value)); //return "OK" if success
+    async createCache(appName: string, key: string, value: any) {
+        return await this.client.set(`${appName}:${key}`, JSON.stringify(value)); //return "OK" if success
     };
 
-    async getCache(key: string) {
-        const cacheData = this.client.get(key);
+    async getCache(appName: string, key: string) {
+        const cacheData = this.client.get(`${appName}:${key}`);
         return JSON.parse(await cacheData);
     };
 
-    async deleteCache(key: string | string[]) {
-        return await this.client.del(key);
+    async deleteCache(appName: string, key: string) {
+        return await this.client.del(`${appName}:${key}`);
+    };
+
+    async deleteAllKeys(appName: string) {
+        const allKeys = await this.client.keys(appName);
+
+        console.log(allKeys);
+
+        for (let key of allKeys) {
+            await this.deleteCache(appName, key);
+        };
+
+        return "OK";
     };
 };
